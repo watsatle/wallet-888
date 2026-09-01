@@ -16,16 +16,16 @@
     font-weight:700; font-style:normal; font-display:swap;
   }
   :root{
-    --bg:#14100c;
-    --panel:#1c1712;
-    --panel-2:#221b14;
-    --line:#332a20;
-    --line-soft:#2a231b;
+    --bg:#121212;
+    --panel:#1a1a1a;
+    --panel-2:#222222;
+    --line:#343434;
+    --line-soft:#2a2a2a;
     --gold:#c9932f;
     --gold-soft:#e0b25a;
-    --text:#ece5d8;
-    --text-dim:#a9a093;
-    --text-faint:#736b5e;
+    --text:#e8e6e3;
+    --text-dim:#a8a6a3;
+    --text-faint:#75736f;
     --green:#7fa876;
     --green-soft:#9fc596;
     --green-bg:rgba(127,168,118,0.10);
@@ -142,6 +142,41 @@
   .cat-row .amt{font-family:var(--font-display);font-size:15px;}
   .income-board .cat-row .amt{color:var(--green-soft);}
   .expense-board .cat-row .amt{color:var(--red-soft);}
+
+  /* Theme toggle switch */
+  .theme-toggle{background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;}
+  .toggle-track{
+    width:56px;height:30px;border-radius:999px;background:var(--panel-2);
+    border:1px solid var(--line);position:relative;display:block;transition:background 0.2s, border-color 0.2s;
+  }
+  .toggle-thumb{
+    position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;
+    background:var(--panel);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:13px;
+    transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  }
+  :root[data-theme="light"] .toggle-track{background:#57545f;border-color:#57545f;}
+  :root[data-theme="light"] .toggle-thumb{transform:translateX(26px);background:#ffffff;}
+
+  /* Accordion category rows (cat-details replaces the old flat table) */
+  .cat-summary-accordion{display:flex;flex-direction:column;gap:10px;}
+  .cat-details summary{list-style:none;cursor:pointer;}
+  .cat-details summary::-webkit-details-marker{display:none;}
+  .cat-details summary.cat-row{margin:0;}
+  .cat-details-body{margin-top:8px;padding:0 2px;}
+  .cat-details-empty{font-size:12.5px;color:var(--text-faint);padding:10px 4px;}
+
+  :root[data-theme="light"] .cat-details summary.cat-row{
+    border-radius:999px;background:var(--panel-2);border:1px solid var(--line-soft);padding:9px 18px 9px 9px;position:relative;
+  }
+  :root[data-theme="light"] .cat-details summary.cat-row .name{color:var(--text-dim);font-weight:600;padding-left:34px;}
+  :root[data-theme="light"] .cat-details summary.cat-row .amt{color:var(--green-soft);font-weight:600;}
+  :root[data-theme="light"] .cat-details summary.cat-row::before{
+    content:'−';position:absolute;left:9px;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;border-radius:7px;background:#a89c86;color:#ffffff;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;line-height:1;
+  }
+  :root[data-theme="light"] .cat-details:not([open]) summary.cat-row::before{content:'+';}
+  :root[data-theme="light"] .cat-details-body{background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;padding:10px;}
 
   .err{color:var(--red-soft);font-size:12px;margin-top:6px;display:none;}
   .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
@@ -272,7 +307,9 @@
       <h1>บันทึกรายรับ-รายจ่ายรายเดือน</h1>
       <div class="sub" id="statusLine">กำลังโหลดข้อมูล…</div>
     </div>
-    <button class="btn btn-ghost" id="themeToggleBtn" type="button">🌙 Dark</button>
+    <button class="theme-toggle" id="themeToggleBtn" type="button" aria-label="สลับธีม">
+      <span class="toggle-track"><span class="toggle-thumb"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span></span>
+    </button>
     <div class="month-picker">
       <button class="btn btn-ghost" id="prevMonthBtn" type="button" aria-label="เดือนก่อนหน้า">&larr;</button>
       <select id="monthSelect"></select>
@@ -336,7 +373,7 @@
 
     <div class="panel-inner">
       <h3>สรุปรายรับตามเจ้า / หมวดหมู่</h3>
-      <div class="cat-summary" id="iCatSummary"></div>
+      <div class="cat-summary-accordion" id="iCatSummary"></div>
     </div>
 
     <details class="panel-inner" id="detailSummaryPanel" style="display:none;">
@@ -347,21 +384,6 @@
         <div id="subtagSummaryList" style="margin-top:14px;"></div>
       </div>
     </details>
-
-    <div class="panel-inner">
-      <h3>รายการรายรับในเดือนนี้</h3>
-      <div class="filter-row">
-        <label>กรองตามหมวดหมู่</label>
-        <select id="incFilterCat"></select>
-      </div>
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>วันที่</th><th>เจ้า/หมวด</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead>
-          <tbody id="iEntriesBody"></tbody>
-        </table>
-      </div>
-      <div class="empty" id="iEmptyMsg" style="display:none;">ยังไม่มีรายรับในเดือนนี้</div>
-    </div>
   </div>
 
   <!-- EXPENSE BOARD -->
@@ -516,10 +538,8 @@ let modalDate = null;
 const monthSelect = document.getElementById('monthSelect');
 const fStartBal = document.getElementById('fStartBal');
 const statusLine = document.getElementById('statusLine');
-const incFilterCat = document.getElementById('incFilterCat');
 
-const iEntriesBody = document.getElementById('iEntriesBody'), iEmptyMsg = document.getElementById('iEmptyMsg'),
-      iCatSummary = document.getElementById('iCatSummary');
+const iCatSummary = document.getElementById('iCatSummary');
 
 const eDate = document.getElementById('eDate'), eCat = document.getElementById('eCat'),
       eDesc = document.getElementById('eDesc'), eAmount = document.getElementById('eAmount'),
@@ -604,17 +624,6 @@ function populateCatSelect(selectEl, cats, keepValue){
   if (prev && cats.includes(prev)) selectEl.value = prev;
 }
 
-function populateFilterSelect(){
-  incFilterCat.innerHTML = "";
-  const allOpt = document.createElement('option');
-  allOpt.value = 'ALL'; allOpt.textContent = 'ทั้งหมด';
-  incFilterCat.appendChild(allOpt);
-  incomeCats.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    incFilterCat.appendChild(opt);
-  });
-}
 
 function updateDescMemory(){
   const incList = document.getElementById('incDescList');
@@ -708,7 +717,6 @@ async function loadData(){
   if (isBrandNew) await saveState();
 
   populateCatSelect(eCat, expenseCats);
-  populateFilterSelect();
   const prevMonth = monthSelect.value;
   populateMonthOptions();
   const currentMonthKey = new Date().toISOString().slice(0,7);
@@ -962,23 +970,9 @@ function renderCollectSummary(){
 
 
 
-function groupIncomeEntries(list){
-  const map = new Map();
-  list.forEach(e => {
-    const site = siteLabel(e);
-    const key = e.date + '|' + e.category + '|' + site;
-    if (!map.has(key)) map.set(key, { date: e.date, category: e.category, site, descs: [], amount: 0, ids: [] });
-    const g = map.get(key);
-    if (e.desc) g.descs.push(e.desc);
-    g.amount += Number(e.amount);
-    g.ids.push(e.id);
-  });
-  return Array.from(map.values()).sort((a,b) => a.date.localeCompare(b.date));
-}
-
-function renderBoard(type, cats, entriesBody, emptyMsg, catSummaryEl, boardTotalEl, filterCat){
+function renderIncomeBoard(cats, catSummaryEl, boardTotalEl){
   const key = monthSelect.value;
-  const list = entries.filter(e => e.type === type && monthKey(e.date) === key).sort((a,b) => a.date.localeCompare(b.date));
+  const list = entries.filter(e => e.type === 'income' && monthKey(e.date) === key).sort((a,b) => a.date.localeCompare(b.date));
   const catTotals = {};
   let total = 0;
   list.forEach(e => {
@@ -988,40 +982,79 @@ function renderBoard(type, cats, entriesBody, emptyMsg, catSummaryEl, boardTotal
   });
   boardTotalEl.textContent = fmt(total);
 
-  const tableList = (filterCat && filterCat !== 'ALL') ? list.filter(e => e.category === filterCat) : list;
+  const openCats = new Set(Array.from(catSummaryEl.querySelectorAll('details[open]')).map(d => d.dataset.cat));
+
+  catSummaryEl.innerHTML = "";
+  cats.forEach(c => {
+    const val = catTotals[c] || 0;
+    const catEntries = list.filter(e => e.category === c);
+    const groups = groupIncomeEntries(catEntries);
+
+    const det = document.createElement('details');
+    det.className = 'cat-details';
+    det.dataset.cat = c;
+    if (openCats.has(c)) det.open = true;
+
+    const rowsHtml = groups.length === 0
+      ? '<div class="cat-details-empty">ยังไม่มีรายการในหมวดนี้เดือนนี้</div>'
+      : `<div class="table-scroll"><table><thead><tr><th>วันที่</th><th>ไซต์</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead><tbody>` +
+        groups.map(g => `
+          <tr>
+            <td>${g.date}</td>
+            <td>${g.site ? escapeHtml(g.site) : '-'}</td>
+            <td>${escapeHtml(g.descs.join(', ') || '-')}</td>
+            <td class="amt-in">+${fmt(g.amount)}</td>
+            <td><button class="del-btn" data-ids="${g.ids.join(',')}" aria-label="ลบรายการ">&times;</button></td>
+          </tr>`).join('') +
+        `</tbody></table></div>`;
+
+    det.innerHTML = `<summary class="cat-row"><span class="name">${escapeHtml(c)}</span><span class="amt">${fmt(val)}</span></summary><div class="cat-details-body">${rowsHtml}</div>`;
+    catSummaryEl.appendChild(det);
+  });
+
+  catSummaryEl.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ids = btn.getAttribute('data-ids').split(',');
+      entries = entries.filter(e => !ids.includes(e.id));
+      await saveEntries();
+      updateDescMemory();
+      populateMonthOptions();
+      render();
+    });
+  });
+
+  return total;
+}
+
+function renderExpenseBoard(cats, entriesBody, emptyMsg, catSummaryEl, boardTotalEl){
+  const key = monthSelect.value;
+  const list = entries.filter(e => e.type === 'expense' && monthKey(e.date) === key).sort((a,b) => a.date.localeCompare(b.date));
+  const catTotals = {};
+  let total = 0;
+  list.forEach(e => {
+    const amt = Number(e.amount);
+    total += amt;
+    catTotals[e.category] = (catTotals[e.category] || 0) + amt;
+  });
+  boardTotalEl.textContent = fmt(total);
 
   entriesBody.innerHTML = "";
-  if (tableList.length === 0){
+  if (list.length === 0){
     emptyMsg.style.display = "block";
-    emptyMsg.textContent = list.length === 0 ? (type==='income' ? "ยังไม่มีรายรับในเดือนนี้" : "ยังไม่มีรายจ่ายในเดือนนี้") : "ไม่มีรายการในหมวดที่เลือก";
+    emptyMsg.textContent = "ยังไม่มีรายจ่ายในเดือนนี้";
   } else {
     emptyMsg.style.display = "none";
-    if (type === 'income'){
-      const groups = groupIncomeEntries(tableList);
-      groups.forEach(g => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${g.date}</td>
-          <td><span class="cat-tag">${escapeHtml(g.category)}${g.site ? ' · ' + escapeHtml(g.site) : ''}</span></td>
-          <td>${escapeHtml(g.descs.join(', ') || '-')}</td>
-          <td class="amt-in">+${fmt(g.amount)}</td>
-          <td><button class="del-btn" data-ids="${g.ids.join(',')}" aria-label="ลบรายการ">&times;</button></td>
-        `;
-        entriesBody.appendChild(tr);
-      });
-    } else {
-      tableList.forEach(e => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${e.date}</td>
-          <td><span class="cat-tag">${escapeHtml(e.category)}</span></td>
-          <td>${escapeHtml(e.desc || '-')}</td>
-          <td class="amt-out">-${fmt(e.amount)}</td>
-          <td><button class="del-btn" data-ids="${e.id}" aria-label="ลบรายการ">&times;</button></td>
-        `;
-        entriesBody.appendChild(tr);
-      });
-    }
+    list.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${e.date}</td>
+        <td><span class="cat-tag">${escapeHtml(e.category)}</span></td>
+        <td>${escapeHtml(e.desc || '-')}</td>
+        <td class="amt-out">-${fmt(e.amount)}</td>
+        <td><button class="del-btn" data-ids="${e.id}" aria-label="ลบรายการ">&times;</button></td>
+      `;
+      entriesBody.appendChild(tr);
+    });
   }
 
   catSummaryEl.innerHTML = "";
@@ -1102,8 +1135,8 @@ function render(){
   document.getElementById('gfaRatePanel').style.display = incomeCats.includes(DAY_RATE_CAT) ? 'block' : 'none';
   document.getElementById('gfaRate').value = dayRate;
 
-  const income = renderBoard('income', incomeCats, iEntriesBody, iEmptyMsg, iCatSummary, document.getElementById('incBoardTotal'), incFilterCat.value);
-  const expense = renderBoard('expense', expenseCats, eEntriesBody, eEmptyMsg, eCatSummary, document.getElementById('expBoardTotal'), null);
+  const income = renderIncomeBoard(incomeCats, iCatSummary, document.getElementById('incBoardTotal'));
+  const expense = renderExpenseBoard(expenseCats, eEntriesBody, eEmptyMsg, eCatSummary, document.getElementById('expBoardTotal'));
 
   document.getElementById('sumStart').textContent = fmt(startBal);
   document.getElementById('sumIncome').textContent = fmt(income);
@@ -1156,9 +1189,6 @@ document.getElementById('iAddCatBtn').addEventListener('click', async () => {
   if (!val || incomeCats.includes(val)){ input.value = ""; return; }
   incomeCats.push(val);
   await saveIncomeCats();
-  const prevFilter = incFilterCat.value;
-  populateFilterSelect();
-  if (Array.from(incFilterCat.options).some(o => o.value === prevFilter)) incFilterCat.value = prevFilter;
   input.value = "";
   render();
 });
@@ -1183,7 +1213,6 @@ fStartBal.addEventListener('change', async () => {
   render();
 });
 
-incFilterCat.addEventListener('change', render);
 monthSelect.addEventListener('change', render);
 document.getElementById('prevMonthBtn').addEventListener('click', () => shiftMonth(-1));
 document.getElementById('nextMonthBtn').addEventListener('click', () => shiftMonth(1));
@@ -1295,8 +1324,7 @@ document.getElementById('importFileInput').addEventListener('change', async (ev)
     visitedMonths = new Set(data.visitedMonths || []);
     await saveState();
     populateCatSelect(eCat, expenseCats);
-    populateFilterSelect();
-    populateMonthOptions();
+      populateMonthOptions();
     updateDescMemory();
     statusLine.textContent = `นำเข้าข้อมูลสำเร็จ (${entries.length} รายการ)`;
     render();
@@ -1305,9 +1333,11 @@ document.getElementById('importFileInput').addEventListener('change', async (ev)
   }
 });
 
+const ICON_MOON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+const ICON_SUN = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('themeToggleBtn').textContent = theme === 'light' ? '🌙 Dark' : '☀️ Light';
+  document.querySelector('#themeToggleBtn .toggle-thumb').innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
   try{ localStorage.setItem('billing-theme', theme); }catch(e){}
 }
 document.getElementById('themeToggleBtn').addEventListener('click', () => {

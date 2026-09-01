@@ -184,7 +184,7 @@ tr:last-child td{border-bottom:none;}
 .expense-board .cat-tag{background:rgba(201,107,90,0.15);color:var(--red-soft);border:1px solid var(--red-line);}
 .amt-in{color:var(--green-soft);text-align:right;}
 .amt-out{color:var(--red-soft);text-align:right;}
-.del-btn{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;padding:2px 6px;}
+.del-btn{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;padding:2px 6px;display:inline-flex;align-items:center;justify-content:center;}
 .del-btn:hover{color:var(--red-soft);}
 .empty{text-align:center;color:var(--text-faint);padding:24px 0;font-size:13px;}
 
@@ -255,7 +255,7 @@ tr:last-child td{border-bottom:none;}
 }
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .modal-head h3{font-family:var(--font-display);font-weight:400;font-size:17px;margin:0;color:var(--gold-soft);}
-.modal-close{background:none;border:none;color:var(--text-faint);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;}
+.modal-close{background:none;border:none;color:var(--text-faint);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;display:inline-flex;align-items:center;justify-content:center;}
 .modal-close:hover{color:var(--gold-soft);}
 .modal-day-list{margin-bottom:14px;}
 .modal-day-row{

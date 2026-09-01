@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
 import { updateDescMemory } from './categories.js';
-import { monthKey, fmt, escapeHtml, groupIncomeEntries } from './utils.js';
+import { monthKey, fmt, escapeHtml, groupIncomeEntries, ICON_X } from './utils.js';
 import { populateMonthOptions } from './month-nav.js';
 
 const iCatSummary = document.getElementById('iCatSummary');
@@ -49,7 +49,7 @@ export function renderIncomeBoard(monthKeyValue){
             <td>${g.site ? escapeHtml(g.site) : '-'}</td>
             <td>${escapeHtml(g.descs.join(', ') || '-')}</td>
             <td class="amt-in">+${fmt(g.amount)}</td>
-            <td><button class="del-btn" data-ids="${g.ids.join(',')}" aria-label="ลบรายการ">&times;</button></td>
+            <td><button class="del-btn" data-ids="${g.ids.join(',')}" aria-label="ลบรายการ">${ICON_X}</button></td>
           </tr>`).join('') +
         `</tbody></table></div>`;
 

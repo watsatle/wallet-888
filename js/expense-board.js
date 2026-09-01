@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
 import { populateCatSelect, updateDescMemory } from './categories.js';
-import { monthKey, fmt, escapeHtml, newId, todayDateStr } from './utils.js';
+import { monthKey, fmt, escapeHtml, newId, todayDateStr, ICON_X } from './utils.js';
 import { populateMonthOptions, getMonthSelect } from './month-nav.js';
 
 const eDate = document.getElementById('eDate');
@@ -49,7 +49,7 @@ export function renderExpenseBoard(monthKeyValue){
         <td><span class="cat-tag">${escapeHtml(e.category)}</span></td>
         <td>${escapeHtml(e.desc || '-')}</td>
         <td class="amt-out">-${fmt(e.amount)}</td>
-        <td><button class="del-btn" data-ids="${e.id}" aria-label="ลบรายการ">&times;</button></td>
+        <td><button class="del-btn" data-ids="${e.id}" aria-label="ลบรายการ">${ICON_X}</button></td>
       `;
       eEntriesBody.appendChild(tr);
     });

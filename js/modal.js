@@ -5,7 +5,7 @@ import {
   DAY_RATE_CAT, JOB_FEE_TAGS, JOB_EXPENSE_TAGS, TAG_TABLE_CATS
 } from './constants.js';
 import {
-  monthKey, thDateLabel, escapeHtml, newId, siteLabel, lastAmountForDesc
+  monthKey, thDateLabel, escapeHtml, newId, siteLabel, lastAmountForDesc, ICON_X
 } from './utils.js';
 import { populateMonthOptions, getMonthSelect } from './month-nav.js';
 
@@ -87,7 +87,7 @@ function renderModalDayList(){
         <span class="desc">${escapeHtml(e.desc || '-')}</span>
       </div>
       <span class="amt">${e.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
-      <button class="del-btn" data-id="${e.id}" aria-label="ลบรายการ">&times;</button>
+      <button class="del-btn" data-id="${e.id}" aria-label="ลบรายการ">${ICON_X}</button>
     `;
     modalDayList.appendChild(row);
   });

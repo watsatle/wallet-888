@@ -4,7 +4,7 @@ import { fmt, todayMonthKey, todayDateStr } from './utils.js';
 import { populateCatSelect, updateDescMemory } from './categories.js';
 import { initTheme } from './theme.js';
 import { initTabs, switchTab } from './tabs.js';
-import { populateMonthOptions, getMonthSelect, initMonthNav, getStartBalance, setStartBalance } from './month-nav.js';
+import { populateMonthOptions, getMonthSelect, initMonthNav, getStartBalance, setStartBalance, renderMonthStrip } from './month-nav.js';
 import { renderIncomeCalendar } from './calendar.js';
 import { openDayModal, initModal } from './modal.js';
 import { renderIncomeBoard, initIncomeBoard } from './income-board.js';
@@ -70,8 +70,10 @@ async function loadData(){
   if (state.isFirstLoad){
     if (Array.from(getMonthSelect().options).some(o => o.value === currentMonthKey)) getMonthSelect().value = currentMonthKey;
     state.isFirstLoad = false;
+    renderMonthStrip();
   } else if (prevMonth && Array.from(getMonthSelect().options).some(o => o.value === prevMonth)){
     getMonthSelect().value = prevMonth;
+    renderMonthStrip();
   }
 
   if (!getExpenseDateInput().value) getExpenseDateInput().value = todayDateStr();
@@ -110,11 +112,34 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 });
 updateLangButtons();
 
-fStartBal.addEventListener('change', async () => {
+async function saveStartBalFromInput(){
   if (state.activeWallet === ALL_WALLETS) return;
   const key = getMonthSelect().value;
   const val = parseFloat(fStartBal.value);
   await setStartBalance(key, state.activeWallet, val);
+}
+
+let startBalDebounce = null;
+fStartBal.addEventListener('input', () => {
+  clearTimeout(startBalDebounce);
+  const liveVal = parseFloat(fStartBal.value) || 0;
+  const income = Number(document.getElementById('incBoardTotal').textContent.replace(/,/g, '')) || 0;
+  const expense = Number(document.getElementById('expBoardTotal').textContent.replace(/,/g, '')) || 0;
+  document.getElementById('sumStart').textContent = fmt(liveVal);
+  document.getElementById('sumNet').textContent = fmt(liveVal + income - expense);
+  startBalDebounce = setTimeout(async () => {
+    await saveStartBalFromInput();
+    // Don't call full render() here — it would fight with the cursor while typing.
+  }, 700);
+});
+fStartBal.addEventListener('change', async () => {
+  clearTimeout(startBalDebounce);
+  await saveStartBalFromInput();
+  render();
+});
+fStartBal.addEventListener('blur', async () => {
+  clearTimeout(startBalDebounce);
+  await saveStartBalFromInput();
   render();
 });
 

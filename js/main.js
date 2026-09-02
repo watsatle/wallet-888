@@ -1,10 +1,10 @@
 import { state } from './state.js';
-import { loadState } from './firebase-service.js';
+import { loadState, saveState } from './firebase-service.js';
 import { fmt, todayMonthKey, todayDateStr } from './utils.js';
 import { populateCatSelect, updateDescMemory } from './categories.js';
 import { initTheme } from './theme.js';
 import { initTabs, switchTab } from './tabs.js';
-import { populateMonthOptions, getMonthSelect, initMonthNav, getStartBalance, setStartBalance, renderMonthStrip } from './month-nav.js';
+import { populateMonthOptions, getMonthSelect, initMonthNav, getStartBalance, commitStartBalance, renderMonthStrip } from './month-nav.js';
 import { renderIncomeCalendar } from './calendar.js';
 import { openDayModal, initModal } from './modal.js';
 import { renderIncomeBoard, initIncomeBoard } from './income-board.js';
@@ -114,56 +114,51 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 });
 updateLangButtons();
 
-async function saveStartBalFromInput(){
+let saveDebounce = null;
+function commitFromInput(){
   if (state.activeWallet === ALL_WALLETS) return;
   const key = getMonthSelect().value;
   const val = parseFloat(fStartBal.value);
-  await setStartBalance(key, state.activeWallet, val);
+  // Synchronous — always correct immediately, regardless of what happens next.
+  commitStartBalance(key, state.activeWallet, val);
 }
 
-let startBalDebounce = null;
-let startBalPendingSave = false;
 fStartBal.addEventListener('input', () => {
-  clearTimeout(startBalDebounce);
-  startBalPendingSave = true;
+  commitFromInput();
   const liveVal = parseFloat(fStartBal.value) || 0;
   const income = Number(document.getElementById('incBoardTotal').textContent.replace(/,/g, '')) || 0;
   const expense = Number(document.getElementById('expBoardTotal').textContent.replace(/,/g, '')) || 0;
   document.getElementById('sumStart').textContent = fmt(liveVal);
   document.getElementById('sumNet').textContent = fmt(liveVal + income - expense);
-  startBalDebounce = setTimeout(async () => {
-    await saveStartBalFromInput();
-    startBalPendingSave = false;
-    // Don't call full render() here — it would fight with the cursor while typing.
-  }, 400);
+  clearTimeout(saveDebounce);
+  // State is already correct at this point (commitFromInput above) — this
+  // debounce only delays the network write, so it's safe even if the user
+  // switches wallet/month/tab before it fires.
+  saveDebounce = setTimeout(() => { saveState(); }, 400);
 });
-fStartBal.addEventListener('change', async () => {
-  clearTimeout(startBalDebounce);
-  await saveStartBalFromInput();
-  startBalPendingSave = false;
+fStartBal.addEventListener('change', () => {
+  clearTimeout(saveDebounce);
+  commitFromInput();
+  saveState();
   render();
 });
-fStartBal.addEventListener('blur', async () => {
-  clearTimeout(startBalDebounce);
-  await saveStartBalFromInput();
-  startBalPendingSave = false;
+fStartBal.addEventListener('blur', () => {
+  clearTimeout(saveDebounce);
+  commitFromInput();
+  saveState();
   render();
 });
 
 // Mobile browsers throttle or fully pause setTimeout in a backgrounded tab,
-// so a debounced save can get silently dropped when the user switches away
-// (another app, another tab, locking the screen) right after typing. Flush
-// any pending save the instant the tab becomes hidden, and re-sync fresh
-// data from Firestore the instant it becomes visible again — this also
-// covers the case where entries appear to "disappear" after switching away
-// and back, since it forces a real reload instead of relying on stale state.
+// so a debounced network write can get silently dropped when the user
+// switches away (another app, another tab, locking the screen). The value
+// itself is always already safe in memory (commitFromInput runs
+// synchronously on every keystroke), so on hide we just need to flush the
+// pending write immediately instead of waiting on the timer.
 document.addEventListener('visibilitychange', async () => {
   if (document.hidden){
-    if (startBalPendingSave){
-      clearTimeout(startBalDebounce);
-      await saveStartBalFromInput();
-      startBalPendingSave = false;
-    }
+    clearTimeout(saveDebounce);
+    await saveState();
   } else {
     await loadData();
   }

@@ -75,9 +75,17 @@ export function getStartBalance(monthKeyValue, wallet){
   return Number(monthData[wallet]) || 0;
 }
 
-export async function setStartBalance(monthKeyValue, wallet, amount){
+/** Synchronously commits the value into state (no network call). Always
+ * call this immediately when the user types — it must never be delayed or
+ * debounced, otherwise switching wallet/month before a delayed write fires
+ * would silently discard what was typed. */
+export function commitStartBalance(monthKeyValue, wallet, amount){
   if (!state.startBalances[monthKeyValue]) state.startBalances[monthKeyValue] = {};
   state.startBalances[monthKeyValue][wallet] = isNaN(amount) ? 0 : amount;
+}
+
+export async function setStartBalance(monthKeyValue, wallet, amount){
+  commitStartBalance(monthKeyValue, wallet, amount);
   await saveState();
 }
 

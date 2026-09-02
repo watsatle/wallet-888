@@ -68,11 +68,17 @@ export async function shiftMonth(delta, onChange){
 /** Starting balance is tracked per wallet. Reading it for ALL_WALLETS sums
  * every wallet's starting balance for that month (informational only). */
 export function getStartBalance(monthKeyValue, wallet){
-  const monthData = state.startBalances[monthKeyValue] || {};
-  if (wallet === ALL_WALLETS){
-    return Object.values(monthData).reduce((s, v) => s + (Number(v) || 0), 0);
+  const monthData = state.startBalances[monthKeyValue];
+  // Defensive: a legacy month may still hold a plain number instead of a
+  // {wallet: number} map. Treat that as the first wallet's balance.
+  if (typeof monthData === 'number'){
+    return wallet === ALL_WALLETS || wallet === state.wallets[0] ? monthData : 0;
   }
-  return Number(monthData[wallet]) || 0;
+  const data = monthData || {};
+  if (wallet === ALL_WALLETS){
+    return Object.values(data).reduce((s, v) => s + (Number(v) || 0), 0);
+  }
+  return Number(data[wallet]) || 0;
 }
 
 /** Synchronously commits the value into state (no network call). Always
@@ -80,7 +86,10 @@ export function getStartBalance(monthKeyValue, wallet){
  * debounced, otherwise switching wallet/month before a delayed write fires
  * would silently discard what was typed. */
 export function commitStartBalance(monthKeyValue, wallet, amount){
-  if (!state.startBalances[monthKeyValue]) state.startBalances[monthKeyValue] = {};
+  // If the month still holds a legacy number (or nothing), reset it to a map.
+  if (typeof state.startBalances[monthKeyValue] !== 'object' || state.startBalances[monthKeyValue] === null){
+    state.startBalances[monthKeyValue] = {};
+  }
   state.startBalances[monthKeyValue][wallet] = isNaN(amount) ? 0 : amount;
 }
 

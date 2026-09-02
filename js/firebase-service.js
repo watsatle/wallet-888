@@ -69,6 +69,32 @@ export async function loadState(){
   state.visitedMonths = new Set(data.visitedMonths || []);
   state.wallets = (data.wallets && data.wallets.length) ? data.wallets : [...DEFAULT_WALLETS];
 
+  // --- One-time migration of legacy start-balance data ---
+  // Old format stored startBalances[month] as a plain number (a single global
+  // balance). The new format is startBalances[month][walletName] = number.
+  // Any leftover number value is converted: keep it under the first wallet,
+  // except the specific legacy September 2026 value which the user asked to
+  // drop (they'll re-enter it per wallet). Runs only when a number is found.
+  {
+    const firstWallet = state.wallets[0];
+    let migrated = false;
+    const dropMonths = ['2026-09'];
+    Object.keys(state.startBalances).forEach(monthKeyValue => {
+      const v = state.startBalances[monthKeyValue];
+      if (typeof v === 'number'){
+        if (dropMonths.includes(monthKeyValue)){
+          delete state.startBalances[monthKeyValue];
+        } else {
+          state.startBalances[monthKeyValue] = { [firstWallet]: v };
+        }
+        migrated = true;
+      }
+    });
+    if (migrated && !fetchFailed){
+      try{ await saveState(); }catch(e){ /* will retry on next save */ }
+    }
+  }
+
   if (isBrandNew){
     await saveState();
     return { status: 'brand-new' };

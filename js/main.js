@@ -120,8 +120,10 @@ async function saveStartBalFromInput(){
 }
 
 let startBalDebounce = null;
+let startBalPendingSave = false;
 fStartBal.addEventListener('input', () => {
   clearTimeout(startBalDebounce);
+  startBalPendingSave = true;
   const liveVal = parseFloat(fStartBal.value) || 0;
   const income = Number(document.getElementById('incBoardTotal').textContent.replace(/,/g, '')) || 0;
   const expense = Number(document.getElementById('expBoardTotal').textContent.replace(/,/g, '')) || 0;
@@ -129,18 +131,48 @@ fStartBal.addEventListener('input', () => {
   document.getElementById('sumNet').textContent = fmt(liveVal + income - expense);
   startBalDebounce = setTimeout(async () => {
     await saveStartBalFromInput();
+    startBalPendingSave = false;
     // Don't call full render() here — it would fight with the cursor while typing.
-  }, 700);
+  }, 400);
 });
 fStartBal.addEventListener('change', async () => {
   clearTimeout(startBalDebounce);
   await saveStartBalFromInput();
+  startBalPendingSave = false;
   render();
 });
 fStartBal.addEventListener('blur', async () => {
   clearTimeout(startBalDebounce);
   await saveStartBalFromInput();
+  startBalPendingSave = false;
   render();
+});
+
+// Mobile browsers throttle or fully pause setTimeout in a backgrounded tab,
+// so a debounced save can get silently dropped when the user switches away
+// (another app, another tab, locking the screen) right after typing. Flush
+// any pending save the instant the tab becomes hidden, and re-sync fresh
+// data from Firestore the instant it becomes visible again — this also
+// covers the case where entries appear to "disappear" after switching away
+// and back, since it forces a real reload instead of relying on stale state.
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden){
+    if (startBalPendingSave){
+      clearTimeout(startBalDebounce);
+      await saveStartBalFromInput();
+      startBalPendingSave = false;
+    }
+  } else {
+    await loadData();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (startBalPendingSave){
+    clearTimeout(startBalDebounce);
+    // Fire-and-forget: the page may be gone before this resolves, but this
+    // still gives the browser a chance to flush the request.
+    saveStartBalFromInput();
+  }
 });
 
 document.getElementById('refreshBtn').addEventListener('click', async () => {

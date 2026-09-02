@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { CATEGORY_COLOR_PALETTE, ALL_WALLETS } from './constants.js';
+import { CATEGORY_COLOR_PALETTE } from './constants.js';
 import { monthKey, daysInMonth, firstWeekday, pad2, fmtCompact, escapeHtml, todayDateStr } from './utils.js';
 import { getMonthSelect } from './month-nav.js';
 import { t } from './i18n.js';
@@ -36,7 +36,6 @@ export function renderIncomeCalendar(onDayClick){
 
   state.entries
     .filter(e => e.type === 'income' && monthKey(e.date) === key)
-    .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet)
     .forEach(e => {
       totalsByDay[e.date] = (totalsByDay[e.date] || 0) + Number(e.amount);
       if (!catsByDay[e.date]) catsByDay[e.date] = new Set();

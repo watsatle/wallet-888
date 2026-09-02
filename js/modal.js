@@ -16,7 +16,6 @@ const overlay = document.getElementById('dayModalOverlay');
 const modalDateLabel = document.getElementById('modalDateLabel');
 const modalDayList = document.getElementById('modalDayList');
 const mCat = document.getElementById('mCat');
-const mWallet = document.getElementById('mWallet');
 const mDesc = document.getElementById('mDesc');
 const mAmount = document.getElementById('mAmount');
 const mErr = document.getElementById('mErr');
@@ -87,7 +86,7 @@ function renderModalDayList(){
     row.innerHTML = `
       <div class="info">
         <span class="cat-tag">${escapeHtml(e.category)}${site ? ' · ' + escapeHtml(site) : ''}</span>
-        <span class="desc">${escapeHtml(e.desc || '-')}${e.wallet ? ' · ' + escapeHtml(e.wallet) : ''}</span>
+        <span class="desc">${escapeHtml(e.desc || '-')}</span>
       </div>
       <span class="amt">${e.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
       <button class="del-btn" data-id="${e.id}" aria-label="ลบรายการ">${ICON_X}</button>
@@ -109,7 +108,6 @@ export function openDayModal(dateStr){
   state.modalDate = dateStr;
   modalDateLabel.textContent = thDateLabel(dateStr);
   populateCatSelect(mCat, state.incomeCats);
-  populateCatSelect(mWallet, state.wallets, true);
   state.selectedSites = new Set();
   renderSubtagField();
   renderTagTable();
@@ -174,7 +172,7 @@ export function initModal(onChange){
     }
     const sites = Array.from(state.selectedSites);
     state.entries.push({
-      id: newId(), date: state.modalDate, category, wallet: mWallet.value, desc, type: 'income', amount,
+      id: newId(), date: state.modalDate, category, desc, type: 'income', amount,
       sites: sites.length ? sites : undefined
     });
     await saveState();
@@ -198,7 +196,7 @@ export function initModal(onChange){
       const v = parseFloat(inp.value);
       if (!isNaN(v) && v > 0){
         toAdd.push({
-          id: newId(), date: state.modalDate, category, wallet: mWallet.value, desc: inp.getAttribute('data-tag'),
+          id: newId(), date: state.modalDate, category, desc: inp.getAttribute('data-tag'),
           type: 'income', amount: v, sites: sites.length ? sites : undefined
         });
       }

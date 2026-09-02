@@ -3,13 +3,11 @@ import { saveState } from './firebase-service.js';
 import { populateCatSelect, updateDescMemory } from './categories.js';
 import { monthKey, fmt, escapeHtml, newId, todayDateStr, ICON_X } from './utils.js';
 import { populateMonthOptions, getMonthSelect } from './month-nav.js';
-import { ALL_WALLETS } from './constants.js';
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
 
 const eDate = document.getElementById('eDate');
 const eCat = document.getElementById('eCat');
-const eWallet = document.getElementById('eWallet');
 const eDesc = document.getElementById('eDesc');
 const eAmount = document.getElementById('eAmount');
 const eErr = document.getElementById('eErr');
@@ -22,14 +20,13 @@ export function getExpenseDateInput(){ return eDate; }
 export function getExpenseCatSelect(){ return eCat; }
 
 /** Renders the expense board as a category-summary accordion (same pattern
- * as the income board) for the currently-selected month and active wallet,
- * and returns the month's total expense. */
+ * as the income board) for the currently-selected month — always the full
+ * combined total across all wallets, wallets no longer filter transactions.
+ * Returns the month's total expense. */
 export function renderExpenseBoard(monthKeyValue){
-  populateCatSelect(eWallet, state.wallets, true);
   const key = monthKeyValue;
   const list = state.entries
     .filter(e => e.type === 'expense' && monthKey(e.date) === key)
-    .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const catTotals = {};
@@ -55,11 +52,10 @@ export function renderExpenseBoard(monthKeyValue){
 
     const rowsHtml = rows.length === 0
       ? `<div class="cat-details-empty">${t('income.emptyMonth')}</div>`
-      : `<div class="table-scroll"><table><thead><tr><th>วันที่</th><th>กระเป๋า</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead><tbody>` +
+      : `<div class="table-scroll"><table><thead><tr><th>วันที่</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead><tbody>` +
         rows.map(e => `
           <tr>
             <td>${e.date}</td>
-            <td>${e.wallet ? escapeHtml(e.wallet) : '-'}</td>
             <td>${escapeHtml(e.desc || '-')}</td>
             <td class="amt-out">-${fmt(e.amount)}</td>
             <td><button class="del-btn" data-ids="${e.id}" aria-label="ลบรายการ">${ICON_X}</button></td>
@@ -87,13 +83,11 @@ export function renderExpenseBoard(monthKeyValue){
 export function initExpenseBoard(onChange){
   onChangeCallback = onChange;
   if (!eDate.value) eDate.value = todayDateStr();
-  populateCatSelect(eWallet, state.wallets);
 
   document.getElementById('eAddBtn').addEventListener('click', async () => {
     eErr.style.display = 'none';
     const date = eDate.value;
     const category = eCat.value;
-    const wallet = eWallet.value;
     const desc = eDesc.value.trim();
     const amount = parseFloat(eAmount.value);
     if (!date || !category || isNaN(amount) || amount <= 0){
@@ -101,7 +95,7 @@ export function initExpenseBoard(onChange){
       eErr.style.display = 'block';
       return;
     }
-    state.entries.push({ id: newId(), date, category, wallet, desc, type: 'expense', amount });
+    state.entries.push({ id: newId(), date, category, desc, type: 'expense', amount });
     await saveState();
     updateDescMemory();
     eDesc.value = '';

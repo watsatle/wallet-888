@@ -1,16 +1,13 @@
 import { state } from './state.js';
-import { ALL_WALLETS } from './constants.js';
 import { monthKey, fmt } from './utils.js';
 import { t } from './i18n.js';
 
-function totalsFor(monthKeyValue, wallet){
+function totalsFor(monthKeyValue){
   const inc = state.entries
     .filter(e => e.type === 'income' && monthKey(e.date) === monthKeyValue)
-    .filter(e => wallet === ALL_WALLETS || e.wallet === wallet)
     .reduce((s, e) => s + Number(e.amount), 0);
   const exp = state.entries
     .filter(e => e.type === 'expense' && monthKey(e.date) === monthKeyValue)
-    .filter(e => wallet === ALL_WALLETS || e.wallet === wallet)
     .reduce((s, e) => s + Number(e.amount), 0);
   return { income: inc, expense: exp };
 }
@@ -36,17 +33,13 @@ function donutHtml(label, income, expense){
     </div>`;
 }
 
-/** Renders two small donut charts side by side: totals combined across all
- * wallets, and totals for the wallet currently selected in the wallet
- * strip (which may be the same as "combined" if ALL is selected). */
+/** Renders a single donut chart with the month's combined income vs
+ * expense — always the true total across every wallet, since wallets no
+ * longer filter transactions. */
 export function renderDashboardDonuts(monthKeyValue){
-  const combined = totalsFor(monthKeyValue, ALL_WALLETS);
-  const selectedLabel = state.activeWallet === ALL_WALLETS ? t('wallet.all') : state.activeWallet;
-  const selected = totalsFor(monthKeyValue, state.activeWallet);
-
+  const combined = totalsFor(monthKeyValue);
   document.getElementById('miniChart').innerHTML = `
     <div class="donut-row">
       ${donutHtml(t('wallet.all'), combined.income, combined.expense)}
-      ${donutHtml(selectedLabel, selected.income, selected.expense)}
     </div>`;
 }

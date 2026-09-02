@@ -1,14 +1,13 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
-import { DAY_RATE_CAT, JOB_FEE_TAGS, JOB_EXPENSE_TAGS, ALL_WALLETS } from './constants.js';
+import { DAY_RATE_CAT, JOB_FEE_TAGS, JOB_EXPENSE_TAGS } from './constants.js';
 import { monthKey, fmt, escapeHtml } from './utils.js';
 import { t } from './i18n.js';
 
 export function renderCollectSummary(monthKeyValue){
   const key = monthKeyValue;
   const monthEntries = state.entries
-    .filter(e => e.type === 'income' && e.category === '20fotoWedding' && monthKey(e.date) === key)
-    .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet);
+    .filter(e => e.type === 'income' && e.category === '20fotoWedding' && monthKey(e.date) === key);
   const listEl = document.getElementById('collectSummaryList');
   const legend = document.getElementById('collectLegend');
 
@@ -49,8 +48,7 @@ export function renderSubtagSummary(monthKeyValue){
 
   activeCats.forEach(cat => {
     const monthEntries = state.entries
-      .filter(e => e.type === 'income' && e.category === cat && monthKey(e.date) === key)
-      .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet);
+      .filter(e => e.type === 'income' && e.category === cat && monthKey(e.date) === key);
     const totals = {};
     state.subtags[cat].forEach(t => totals[t] = 0);
     monthEntries.forEach(e => {

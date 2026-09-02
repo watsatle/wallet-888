@@ -53,6 +53,7 @@ async function addWallet(){
   state.wallets.push(val);
   await saveState();
   renderWalletSelector();
+  onChangeCallback();
 }
 
 export function initWalletSelector(onChange){

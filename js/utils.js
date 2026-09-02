@@ -71,9 +71,8 @@ export function groupIncomeEntries(list){
   const map = new Map();
   list.forEach(e => {
     const site = siteLabel(e);
-    const wallet = e.wallet || '';
-    const key = e.date + '|' + e.category + '|' + site + '|' + wallet;
-    if (!map.has(key)) map.set(key, { date: e.date, category: e.category, site, wallet, descs: [], amount: 0, ids: [] });
+    const key = e.date + '|' + e.category + '|' + site;
+    if (!map.has(key)) map.set(key, { date: e.date, category: e.category, site, descs: [], amount: 0, ids: [] });
     const g = map.get(key);
     if (e.desc) g.descs.push(e.desc);
     g.amount += Number(e.amount);

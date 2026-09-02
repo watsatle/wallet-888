@@ -15,6 +15,7 @@ import { renderWalletChart } from './wallet-chart.js';
 import { initReport } from './report.js';
 import { initWalletSelector, renderWalletSelector } from './wallets.js';
 import { initSettingsMenu } from './settings.js';
+import { showToast } from './toast.js';
 import { ALL_WALLETS } from './constants.js';
 import { t, initLanguage, applyStaticTranslations, setLanguage } from './i18n.js';
 
@@ -114,52 +115,44 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 });
 updateLangButtons();
 
-let saveDebounce = null;
-function commitFromInput(){
-  if (state.activeWallet === ALL_WALLETS) return;
-  const key = getMonthSelect().value;
-  const val = parseFloat(fStartBal.value);
-  // Synchronous — always correct immediately, regardless of what happens next.
-  commitStartBalance(key, state.activeWallet, val);
-}
-
-fStartBal.addEventListener('input', () => {
-  commitFromInput();
+// Live-preview the totals while typing, and commit the value into state on
+// every keystroke so it is never lost — but the actual Firestore write only
+// happens when the user presses the explicit "Save balance" button.
+function previewStartBal(){
   const liveVal = parseFloat(fStartBal.value) || 0;
   const income = Number(document.getElementById('incBoardTotal').textContent.replace(/,/g, '')) || 0;
   const expense = Number(document.getElementById('expBoardTotal').textContent.replace(/,/g, '')) || 0;
   document.getElementById('sumStart').textContent = fmt(liveVal);
   document.getElementById('sumNet').textContent = fmt(liveVal + income - expense);
-  clearTimeout(saveDebounce);
-  // State is already correct at this point (commitFromInput above) — this
-  // debounce only delays the network write, so it's safe even if the user
-  // switches wallet/month/tab before it fires.
-  saveDebounce = setTimeout(() => { saveState(); }, 400);
-});
-fStartBal.addEventListener('change', () => {
-  clearTimeout(saveDebounce);
-  commitFromInput();
-  saveState();
-  render();
-});
-fStartBal.addEventListener('blur', () => {
-  clearTimeout(saveDebounce);
-  commitFromInput();
-  saveState();
-  render();
+}
+
+fStartBal.addEventListener('input', () => {
+  if (state.activeWallet === ALL_WALLETS) return;
+  commitStartBalance(getMonthSelect().value, state.activeWallet, parseFloat(fStartBal.value));
+  previewStartBal();
 });
 
-// Mobile browsers throttle or fully pause setTimeout in a backgrounded tab,
-// so a debounced network write can get silently dropped when the user
-// switches away (another app, another tab, locking the screen). The value
-// itself is always already safe in memory (commitFromInput runs
-// synchronously on every keystroke), so on hide we just need to flush the
-// pending write immediately instead of waiting on the timer.
+async function saveStartBalance(){
+  if (state.activeWallet === ALL_WALLETS) return;
+  const key = getMonthSelect().value;
+  const wallet = state.activeWallet;
+  commitStartBalance(key, wallet, parseFloat(fStartBal.value));
+  await saveState();
+  showToast(t('wallet.balanceSaved', { wallet }));
+  render();
+}
+
+document.getElementById('startBalSaveBtn').addEventListener('click', saveStartBalance);
+// Enter key in the number field also saves.
+fStartBal.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter'){ ev.preventDefault(); saveStartBalance(); }
+});
+
+// When returning to a backgrounded tab, re-sync fresh data from Firestore so
+// nothing looks stale. (No pending auto-save to worry about anymore — saving
+// is now an explicit button press.)
 document.addEventListener('visibilitychange', async () => {
-  if (document.hidden){
-    clearTimeout(saveDebounce);
-    await saveState();
-  } else {
+  if (!document.hidden){
     await loadData();
   }
 });

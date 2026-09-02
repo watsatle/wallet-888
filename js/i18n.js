@@ -30,6 +30,8 @@ const DICT = {
     'wallet.startBalance': 'ยอดยกมาต้นเดือน —',
     'wallet.promptNewName': 'ชื่อกระเป๋าเงินใหม่ (เช่น ชื่อธนาคาร หรือบัญชี)',
     'wallet.chartTitle': 'ยอดแต่ละบัญชี',
+    'wallet.saveBalance': 'บันทึกยอด',
+    'wallet.balanceSaved': 'บันทึกยอด {wallet} สำเร็จ',
 
     'stat.startBalance': 'ยอดยกมา',
     'stat.income': 'รายรับ',
@@ -127,6 +129,8 @@ const DICT = {
     'wallet.startBalance': 'Starting balance —',
     'wallet.promptNewName': 'New wallet name (e.g. bank name or account)',
     'wallet.chartTitle': 'Balance by wallet',
+    'wallet.saveBalance': 'Save balance',
+    'wallet.balanceSaved': '{wallet} balance saved',
 
     'stat.startBalance': 'Starting balance',
     'stat.income': 'Income',
@@ -224,6 +228,8 @@ const DICT = {
     'wallet.startBalance': '繰越残高 —',
     'wallet.promptNewName': '新しいウォレット名（銀行名や口座名など）',
     'wallet.chartTitle': '口座別残高',
+    'wallet.saveBalance': '残高を保存',
+    'wallet.balanceSaved': '{wallet} の残高を保存しました',
 
     'stat.startBalance': '繰越残高',
     'stat.income': '収入',

@@ -189,7 +189,8 @@ select:focus, input:focus{outline:none;border-color:var(--gold);}
 .month-picker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .month-picker select{min-width:150px;}
 
-.start-bal{display:flex;align-items:center;gap:10px;padding-top:4px;}
+.start-bal{display:flex;align-items:center;gap:10px;padding-top:4px;flex-wrap:wrap;}
+.start-bal input{max-width:160px;}
 .start-bal label{font-family:var(--font-display);font-weight:700;}
 .start-bal label{font-size:12.5px;color:var(--text-faint);white-space:nowrap;}
 .start-bal input{width:120px;}

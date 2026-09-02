@@ -1,8 +1,10 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
 import { monthKey, thMonthLabel, pad2, todayMonthKey } from './utils.js';
+import { ALL_WALLETS } from './constants.js';
 
 const monthSelect = document.getElementById('monthSelect');
+const monthStrip = document.getElementById('monthStrip');
 
 export function getMonthSelect(){ return monthSelect; }
 
@@ -26,6 +28,27 @@ export function populateMonthOptions(){
     monthSelect.appendChild(opt);
   });
   if (sorted.includes(prevValue)) monthSelect.value = prevValue;
+  renderMonthStrip();
+}
+
+/** Renders the full-width scrollable month strip that mirrors the hidden
+ * <select>. Clicking a pill updates the select's value and fires a native
+ * 'change' event so every existing listener keeps working untouched. */
+export function renderMonthStrip(){
+  monthStrip.innerHTML = '';
+  Array.from(monthSelect.options).forEach(opt => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'month-pill' + (opt.value === monthSelect.value ? ' active' : '');
+    pill.textContent = opt.textContent;
+    pill.addEventListener('click', () => {
+      monthSelect.value = opt.value;
+      monthSelect.dispatchEvent(new Event('change'));
+    });
+    monthStrip.appendChild(pill);
+  });
+  const activeEl = monthStrip.querySelector('.month-pill.active');
+  if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
 
 /** Moves the selected month forward/back by `delta` months, adding the
@@ -42,8 +65,24 @@ export async function shiftMonth(delta, onChange){
   onChange();
 }
 
+/** Starting balance is tracked per wallet. Reading it for ALL_WALLETS sums
+ * every wallet's starting balance for that month (informational only). */
+export function getStartBalance(monthKeyValue, wallet){
+  const monthData = state.startBalances[monthKeyValue] || {};
+  if (wallet === ALL_WALLETS){
+    return Object.values(monthData).reduce((s, v) => s + (Number(v) || 0), 0);
+  }
+  return Number(monthData[wallet]) || 0;
+}
+
+export async function setStartBalance(monthKeyValue, wallet, amount){
+  if (!state.startBalances[monthKeyValue]) state.startBalances[monthKeyValue] = {};
+  state.startBalances[monthKeyValue][wallet] = isNaN(amount) ? 0 : amount;
+  await saveState();
+}
+
 export function initMonthNav(onChange){
   document.getElementById('prevMonthBtn').addEventListener('click', () => shiftMonth(-1, onChange));
   document.getElementById('nextMonthBtn').addEventListener('click', () => shiftMonth(1, onChange));
-  monthSelect.addEventListener('change', onChange);
+  monthSelect.addEventListener('change', () => { renderMonthStrip(); onChange(); });
 }

@@ -1,11 +1,14 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
-import { DAY_RATE_CAT, JOB_FEE_TAGS, JOB_EXPENSE_TAGS } from './constants.js';
+import { DAY_RATE_CAT, JOB_FEE_TAGS, JOB_EXPENSE_TAGS, ALL_WALLETS } from './constants.js';
 import { monthKey, fmt, escapeHtml } from './utils.js';
+import { t } from './i18n.js';
 
 export function renderCollectSummary(monthKeyValue){
   const key = monthKeyValue;
-  const monthEntries = state.entries.filter(e => e.type === 'income' && e.category === '20fotoWedding' && monthKey(e.date) === key);
+  const monthEntries = state.entries
+    .filter(e => e.type === 'income' && e.category === '20fotoWedding' && monthKey(e.date) === key)
+    .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet);
   const listEl = document.getElementById('collectSummaryList');
   const legend = document.getElementById('collectLegend');
 
@@ -24,11 +27,11 @@ export function renderCollectSummary(monthKeyValue){
   });
 
   const rows = [
-    ['ค่าจ้าง / ค่างาน', feeTotal],
-    ['ค่าใช้จ่ายสำรองจ่าย (รอเบิกคืน)', expTotal]
+    [t('collect.fee'), feeTotal],
+    [t('collect.expense'), expTotal]
   ];
-  if (otherTotal > 0) rows.push(['อื่นๆ', otherTotal]);
-  rows.push(['ยอดรวมเรียกเก็บสิ้นเดือน', feeTotal + expTotal + otherTotal]);
+  if (otherTotal > 0) rows.push([t('collect.other'), otherTotal]);
+  rows.push([t('collect.total'), feeTotal + expTotal + otherTotal]);
 
   legend.style.display = 'block';
   listEl.innerHTML = rows.map(([label, val], i) => {
@@ -45,7 +48,9 @@ export function renderSubtagSummary(monthKeyValue){
   if (activeCats.length === 0) return;
 
   activeCats.forEach(cat => {
-    const monthEntries = state.entries.filter(e => e.type === 'income' && e.category === cat && monthKey(e.date) === key);
+    const monthEntries = state.entries
+      .filter(e => e.type === 'income' && e.category === cat && monthKey(e.date) === key)
+      .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet);
     const totals = {};
     state.subtags[cat].forEach(t => totals[t] = 0);
     monthEntries.forEach(e => {

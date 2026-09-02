@@ -28,6 +28,11 @@ export const SUBTAG_DEFAULTS = {
 // The category that uses the flat daily-rate "worked a full day" shortcut.
 export const DAY_RATE_CAT = "Good for All";
 
+// Accounts / "wallets" money moves through. Entries can be tagged with one
+// of these so the dashboard can be viewed per-wallet or combined.
+export const DEFAULT_WALLETS = ["กสิกร 1", "กสิกร 2", "บัญชี Make", "กรุงเทพ", "กองทุน", "เงินสด"];
+export const ALL_WALLETS = 'ALL';
+
 // Deterministic color assigned to each income category (by index in the
 // category list) for the calendar dots and legend.
 export const CATEGORY_COLOR_PALETTE = [

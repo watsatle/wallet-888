@@ -1,27 +1,39 @@
 import { state } from './state.js';
-import { loadState, saveState } from './firebase-service.js';
+import { loadState } from './firebase-service.js';
 import { fmt, todayMonthKey, todayDateStr } from './utils.js';
 import { populateCatSelect, updateDescMemory } from './categories.js';
 import { initTheme } from './theme.js';
 import { initTabs, switchTab } from './tabs.js';
-import { populateMonthOptions, getMonthSelect, initMonthNav } from './month-nav.js';
+import { populateMonthOptions, getMonthSelect, initMonthNav, getStartBalance, setStartBalance } from './month-nav.js';
 import { renderIncomeCalendar } from './calendar.js';
 import { openDayModal, initModal } from './modal.js';
 import { renderIncomeBoard, initIncomeBoard } from './income-board.js';
 import { renderExpenseBoard, initExpenseBoard, getExpenseDateInput, getExpenseCatSelect } from './expense-board.js';
 import { renderCollectSummary, renderSubtagSummary, updateDetailSummaryVisibility, renderGfaRatePanel, initGfaRate } from './summary.js';
-import { renderMiniChart } from './mini-chart.js';
+import { renderDashboardDonuts } from './mini-chart.js';
 import { initReport } from './report.js';
+import { initWalletSelector, renderWalletSelector } from './wallets.js';
+import { initSettingsMenu } from './settings.js';
+import { ALL_WALLETS } from './constants.js';
+import { t, initLanguage, applyStaticTranslations, setLanguage } from './i18n.js';
 
 const statusLine = document.getElementById('statusLine');
 const fStartBal = document.getElementById('fStartBal');
+const startBalWrap = document.getElementById('startBalWrap');
 
 function render(){
   const key = getMonthSelect().value;
-  const startBal = state.startBalances[key] || 0;
-  fStartBal.value = startBal;
 
+  renderWalletSelector();
   renderGfaRatePanel();
+
+  const isAll = state.activeWallet === ALL_WALLETS;
+  const startBal = getStartBalance(key, state.activeWallet);
+  startBalWrap.style.display = isAll ? 'none' : 'flex';
+  if (!isAll){
+    fStartBal.value = startBal;
+    document.getElementById('startBalWalletLabel').textContent = state.activeWallet;
+  }
 
   const income = renderIncomeBoard(key);
   const expense = renderExpenseBoard(key);
@@ -30,7 +42,7 @@ function render(){
   document.getElementById('sumIncome').textContent = fmt(income);
   document.getElementById('sumExpense').textContent = fmt(expense);
   document.getElementById('sumNet').textContent = fmt(startBal + income - expense);
-  renderMiniChart(income, expense);
+  renderDashboardDonuts(key);
 
   renderIncomeCalendar(openDayModal);
   renderSubtagSummary(key);
@@ -39,15 +51,15 @@ function render(){
 }
 
 async function loadData(){
-  statusLine.textContent = 'กำลังเข้าสู่ระบบ...';
+  statusLine.textContent = t('app.loggingIn');
   const result = await loadState();
 
   if (result.status === 'auth-failed'){
-    statusLine.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + result.message;
+    statusLine.textContent = t('app.authFailed') + ' ' + result.message;
     return;
   }
   if (result.status === 'fetch-failed'){
-    statusLine.textContent = 'โหลดข้อมูลไม่สำเร็จ — ข้อมูลเดิมยังปลอดภัย ลองกดรีเฟรชอีกครั้ง';
+    statusLine.textContent = t('app.fetchFailed');
   }
 
   populateCatSelect(getExpenseCatSelect(), state.expenseCats);
@@ -66,12 +78,14 @@ async function loadData(){
   updateDescMemory();
 
   if (result.status === 'ok' || result.status === 'brand-new'){
-    statusLine.textContent = 'ซิงก์กับ Firebase อัตโนมัติ เปิดจากอุปกรณ์ไหนก็เห็นข้อมูลเดิม';
+    statusLine.textContent = t('app.synced');
   }
   render();
 }
 
 // ---- Wire everything up ----
+initLanguage();
+applyStaticTranslations();
 initTheme();
 initTabs();
 initMonthNav(render);
@@ -80,17 +94,32 @@ initIncomeBoard(render);
 initExpenseBoard(render);
 initGfaRate(render);
 initReport(statusLine, render);
+initWalletSelector(render);
+initSettingsMenu();
+
+function updateLangButtons(){
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === state.language);
+  });
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    await setLanguage(btn.getAttribute('data-lang'), render);
+    updateLangButtons();
+  });
+});
+updateLangButtons();
 
 fStartBal.addEventListener('change', async () => {
+  if (state.activeWallet === ALL_WALLETS) return;
   const key = getMonthSelect().value;
   const val = parseFloat(fStartBal.value);
-  state.startBalances[key] = isNaN(val) ? 0 : val;
-  await saveState();
+  await setStartBalance(key, state.activeWallet, val);
   render();
 });
 
 document.getElementById('refreshBtn').addEventListener('click', async () => {
-  statusLine.textContent = 'กำลังโหลดข้อมูลล่าสุด…';
+  statusLine.textContent = t('app.loadingLatest');
   await loadData();
 });
 

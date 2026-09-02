@@ -5,7 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/fireba
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 import { state } from './state.js';
-import { DEFAULT_INCOME_CATS, DEFAULT_EXPENSE_CATS, SUBTAG_DEFAULTS } from './constants.js';
+import { DEFAULT_INCOME_CATS, DEFAULT_EXPENSE_CATS, DEFAULT_WALLETS, SUBTAG_DEFAULTS } from './constants.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdnM7qUM0MxYAvoyn4Se5wS__veK1Kezw",
@@ -67,6 +67,7 @@ export async function loadState(){
   state.subtags = data.subtags || {};
   Object.keys(SUBTAG_DEFAULTS).forEach(c => { if (!state.subtags[c]) state.subtags[c] = [...SUBTAG_DEFAULTS[c]]; });
   state.visitedMonths = new Set(data.visitedMonths || []);
+  state.wallets = (data.wallets && data.wallets.length) ? data.wallets : [...DEFAULT_WALLETS];
 
   if (isBrandNew){
     await saveState();
@@ -87,6 +88,7 @@ export async function saveState(){
     dayRate: state.dayRate,
     subtags: state.subtags,
     visitedMonths: Array.from(state.visitedMonths),
+    wallets: state.wallets,
     updatedAt: new Date().toISOString()
   }));
   await setDoc(stateDocRef(), payload);

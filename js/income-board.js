@@ -3,6 +3,8 @@ import { saveState } from './firebase-service.js';
 import { updateDescMemory } from './categories.js';
 import { monthKey, fmt, escapeHtml, groupIncomeEntries, ICON_X } from './utils.js';
 import { populateMonthOptions } from './month-nav.js';
+import { ALL_WALLETS } from './constants.js';
+import { t } from './i18n.js';
 
 const iCatSummary = document.getElementById('iCatSummary');
 const incBoardTotal = document.getElementById('incBoardTotal');
@@ -10,11 +12,12 @@ const incBoardTotal = document.getElementById('incBoardTotal');
 let onChangeCallback = () => {};
 
 /** Renders the income board's category-summary accordion for the currently
- * selected month, and returns the month's total income. */
+ * selected month (and active wallet filter), and returns the month's total income. */
 export function renderIncomeBoard(monthKeyValue){
   const key = monthKeyValue;
   const list = state.entries
     .filter(e => e.type === 'income' && monthKey(e.date) === key)
+    .filter(e => state.activeWallet === ALL_WALLETS || e.wallet === state.activeWallet)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const catTotals = {};
@@ -41,11 +44,12 @@ export function renderIncomeBoard(monthKeyValue){
     if (openCats.has(c)) det.open = true;
 
     const rowsHtml = groups.length === 0
-      ? '<div class="cat-details-empty">ยังไม่มีรายการในหมวดนี้เดือนนี้</div>'
-      : `<div class="table-scroll"><table><thead><tr><th>วันที่</th><th>ไซต์</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead><tbody>` +
+      ? `<div class="cat-details-empty">${t('income.emptyMonth')}</div>`
+      : `<div class="table-scroll"><table><thead><tr><th>วันที่</th><th>กระเป๋า</th><th>ไซต์</th><th>รายละเอียด</th><th style="text-align:right;">จำนวนเงิน</th><th></th></tr></thead><tbody>` +
         groups.map(g => `
           <tr>
             <td>${g.date}</td>
+            <td>${g.wallet ? escapeHtml(g.wallet) : '-'}</td>
             <td>${g.site ? escapeHtml(g.site) : '-'}</td>
             <td>${escapeHtml(g.descs.join(', ') || '-')}</td>
             <td class="amt-in">+${fmt(g.amount)}</td>

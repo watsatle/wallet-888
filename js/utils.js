@@ -2,6 +2,9 @@ import { THAI_MONTH_NAMES } from './constants.js';
 
 export const ICON_X = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
+import { t } from './i18n.js';
+import { state } from './state.js';
+
 export function fmt(n){
   return Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -28,12 +31,14 @@ export function newId(){
 
 export function thMonthLabel(key){
   const [y, m] = key.split('-').map(Number);
-  return THAI_MONTH_NAMES[m - 1] + ' ' + (y + 543);
+  const displayYear = state.language === 'th' ? y + 543 : y;
+  return t('months')[m - 1] + ' ' + displayYear;
 }
 
 export function thDateLabel(dateStr){
   const [y, m, d] = dateStr.split('-').map(Number);
-  return d + ' ' + THAI_MONTH_NAMES[m - 1] + ' ' + (y + 543);
+  const displayYear = state.language === 'th' ? y + 543 : y;
+  return d + ' ' + t('months')[m - 1] + ' ' + displayYear;
 }
 
 export function daysInMonth(key){
@@ -66,8 +71,9 @@ export function groupIncomeEntries(list){
   const map = new Map();
   list.forEach(e => {
     const site = siteLabel(e);
-    const key = e.date + '|' + e.category + '|' + site;
-    if (!map.has(key)) map.set(key, { date: e.date, category: e.category, site, descs: [], amount: 0, ids: [] });
+    const wallet = e.wallet || '';
+    const key = e.date + '|' + e.category + '|' + site + '|' + wallet;
+    if (!map.has(key)) map.set(key, { date: e.date, category: e.category, site, wallet, descs: [], amount: 0, ids: [] });
     const g = map.get(key);
     if (e.desc) g.descs.push(e.desc);
     g.amount += Number(e.amount);

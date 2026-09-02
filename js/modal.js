@@ -8,12 +8,15 @@ import {
   monthKey, thDateLabel, escapeHtml, newId, siteLabel, lastAmountForDesc, ICON_X
 } from './utils.js';
 import { populateMonthOptions, getMonthSelect } from './month-nav.js';
+import { showToast } from './toast.js';
+import { t } from './i18n.js';
 
 // DOM refs
 const overlay = document.getElementById('dayModalOverlay');
 const modalDateLabel = document.getElementById('modalDateLabel');
 const modalDayList = document.getElementById('modalDayList');
 const mCat = document.getElementById('mCat');
+const mWallet = document.getElementById('mWallet');
 const mDesc = document.getElementById('mDesc');
 const mAmount = document.getElementById('mAmount');
 const mErr = document.getElementById('mErr');
@@ -74,7 +77,7 @@ function renderModalDayList(){
 
   modalDayList.innerHTML = '';
   if (list.length === 0){
-    modalDayList.innerHTML = '<div class="modal-empty">ยังไม่มีรายการของวันนี้</div>';
+    modalDayList.innerHTML = `<div class="modal-empty">${t('modal.emptyDay')}</div>`;
     return;
   }
   list.forEach(e => {
@@ -84,7 +87,7 @@ function renderModalDayList(){
     row.innerHTML = `
       <div class="info">
         <span class="cat-tag">${escapeHtml(e.category)}${site ? ' · ' + escapeHtml(site) : ''}</span>
-        <span class="desc">${escapeHtml(e.desc || '-')}</span>
+        <span class="desc">${escapeHtml(e.desc || '-')}${e.wallet ? ' · ' + escapeHtml(e.wallet) : ''}</span>
       </div>
       <span class="amt">${e.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
       <button class="del-btn" data-id="${e.id}" aria-label="ลบรายการ">${ICON_X}</button>
@@ -106,6 +109,7 @@ export function openDayModal(dateStr){
   state.modalDate = dateStr;
   modalDateLabel.textContent = thDateLabel(dateStr);
   populateCatSelect(mCat, state.incomeCats);
+  populateCatSelect(mWallet, state.wallets, true);
   state.selectedSites = new Set();
   renderSubtagField();
   renderTagTable();
@@ -164,13 +168,13 @@ export function initModal(onChange){
     const desc = mDesc.value.trim();
     const amount = parseFloat(mAmount.value);
     if (!state.modalDate || !category || isNaN(amount) || amount <= 0){
-      mErr.textContent = 'เลือกหมวดหมู่และกรอกจำนวนเงินให้ถูกต้อง (มากกว่า 0)';
+      mErr.textContent = t('modal.errRequired');
       mErr.style.display = 'block';
       return;
     }
     const sites = Array.from(state.selectedSites);
     state.entries.push({
-      id: newId(), date: state.modalDate, category, desc, type: 'income', amount,
+      id: newId(), date: state.modalDate, category, wallet: mWallet.value, desc, type: 'income', amount,
       sites: sites.length ? sites : undefined
     });
     await saveState();
@@ -180,6 +184,7 @@ export function initModal(onChange){
     populateMonthOptions();
     getMonthSelect().value = monthKey(state.modalDate);
     renderModalDayList();
+    showToast(t('modal.toastSaved'));
     onChangeCallback({ closeModal: false });
   });
 
@@ -193,13 +198,13 @@ export function initModal(onChange){
       const v = parseFloat(inp.value);
       if (!isNaN(v) && v > 0){
         toAdd.push({
-          id: newId(), date: state.modalDate, category, desc: inp.getAttribute('data-tag'),
+          id: newId(), date: state.modalDate, category, wallet: mWallet.value, desc: inp.getAttribute('data-tag'),
           type: 'income', amount: v, sites: sites.length ? sites : undefined
         });
       }
     }
     if (toAdd.length === 0){
-      mTagErr.textContent = 'กรอกจำนวนเงินอย่างน้อย 1 ช่อง';
+      mTagErr.textContent = t('modal.errTagRequired');
       mTagErr.style.display = 'block';
       return;
     }
@@ -210,6 +215,7 @@ export function initModal(onChange){
     populateMonthOptions();
     getMonthSelect().value = monthKey(state.modalDate);
     renderModalDayList();
+    showToast(t('modal.toastSavedMulti', { n: toAdd.length }));
     onChangeCallback({ closeModal: false });
   });
 

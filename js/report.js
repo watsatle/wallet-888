@@ -43,9 +43,9 @@ function buildPrintReport(){
       <tr class="totalrow"><td>ยอดรวมเรียกเก็บ</td><td class="r">${fmt(feeTotal + expTotal20 + otherTotal)}</td></tr></table>`;
   }
 
-  html += `<h2>รายการรายรับทั้งหมด</h2><table><tr><th>วันที่</th><th>เจ้า/หมวด</th><th>ไซต์</th><th>รายละเอียด</th><th class="r">จำนวนเงิน</th></tr>`;
+  html += `<h2>รายการรายรับทั้งหมด</h2><table><tr><th>วันที่</th><th>เจ้า/หมวด</th><th>กระเป๋า</th><th>ไซต์</th><th>รายละเอียด</th><th class="r">จำนวนเงิน</th></tr>`;
   incList.forEach(e => {
-    html += `<tr><td>${e.date}</td><td>${escapeHtml(e.category)}</td><td>${escapeHtml(siteLabel(e))}</td><td>${escapeHtml(e.desc || '-')}</td><td class="r">${fmt(e.amount)}</td></tr>`;
+    html += `<tr><td>${e.date}</td><td>${escapeHtml(e.category)}</td><td>${escapeHtml(e.wallet || '-')}</td><td>${escapeHtml(siteLabel(e))}</td><td>${escapeHtml(e.desc || '-')}</td><td class="r">${fmt(e.amount)}</td></tr>`;
   });
   html += `</table>`;
 
@@ -53,11 +53,20 @@ function buildPrintReport(){
   state.expenseCats.forEach(c => { html += `<tr><td>${escapeHtml(c)}</td><td class="r">${fmt(expByCat[c] || 0)}</td></tr>`; });
   html += `<tr class="totalrow"><td>รวมรายจ่าย</td><td class="r">${fmt(expTotal)}</td></tr></table>`;
 
-  html += `<h2>รายการรายจ่ายทั้งหมด</h2><table><tr><th>วันที่</th><th>หมวด</th><th>รายละเอียด</th><th class="r">จำนวนเงิน</th></tr>`;
+  html += `<h2>รายการรายจ่ายทั้งหมด</h2><table><tr><th>วันที่</th><th>หมวด</th><th>กระเป๋า</th><th>รายละเอียด</th><th class="r">จำนวนเงิน</th></tr>`;
   expList.forEach(e => {
-    html += `<tr><td>${e.date}</td><td>${escapeHtml(e.category)}</td><td>${escapeHtml(e.desc || '-')}</td><td class="r">${fmt(e.amount)}</td></tr>`;
+    html += `<tr><td>${e.date}</td><td>${escapeHtml(e.category)}</td><td>${escapeHtml(e.wallet || '-')}</td><td>${escapeHtml(e.desc || '-')}</td><td class="r">${fmt(e.amount)}</td></tr>`;
   });
   html += `</table>`;
+
+  const trList = state.entries.filter(e => e.type === 'transfer' && monthKey(e.date) === key).sort((a, b) => a.date.localeCompare(b.date));
+  if (trList.length){
+    html += `<h2>${t('transfer.title')}</h2><table><tr><th>${t('field.date')}</th><th>${t('transfer.from')}</th><th>${t('transfer.to')}</th><th>${t('field.desc')}</th><th class="r">${t('field.amount')}</th></tr>`;
+    trList.forEach(e => {
+      html += `<tr><td>${e.date}</td><td>${escapeHtml(e.fromWallet || '-')}</td><td>${escapeHtml(e.toWallet || '-')}</td><td>${escapeHtml(e.desc || '-')}</td><td class="r">${fmt(e.amount)}</td></tr>`;
+    });
+    html += `</table>`;
+  }
 
   document.getElementById('printReport').innerHTML = html;
 }

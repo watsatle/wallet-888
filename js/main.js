@@ -15,6 +15,7 @@ import { renderWalletChart } from './wallet-chart.js';
 import { initReport } from './report.js';
 import { initWalletSelector, renderWalletSelector } from './wallets.js';
 import { initSettingsMenu } from './settings.js';
+import { initTransfer } from './transfer.js';
 import { showToast } from './toast.js';
 import { ALL_WALLETS } from './constants.js';
 import { t, initLanguage, applyStaticTranslations, setLanguage } from './i18n.js';
@@ -101,6 +102,7 @@ initGfaRate(render);
 initReport(statusLine, render);
 initWalletSelector(render);
 initSettingsMenu();
+initTransfer(render);
 
 function updateLangButtons(){
   document.querySelectorAll('.lang-btn').forEach(btn => {

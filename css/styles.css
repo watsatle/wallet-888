@@ -251,6 +251,17 @@ select:focus, input:focus{outline:none;border-color:var(--gold);}
 .panel-head-row h3{margin:0;}
 .transfer-btn{font-size:12.5px;padding:7px 14px;border-radius:8px;color:var(--gold-soft);white-space:nowrap;}
 
+/* ---------- Wallet monthly summary ---------- */
+.wallet-summary-item .name{display:flex;align-items:center;gap:8px;}
+.ws-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.ws-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px;}
+.ws-cell{display:flex;flex-direction:column;gap:3px;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:9px 11px;}
+.ws-label{font-size:11px;color:var(--text-faint);}
+.ws-val{font-family:var(--font-display);font-size:14.5px;color:var(--text);}
+.ws-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px;}
+.ws-bar-track{height:10px;border-radius:6px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line-soft);}
+.ws-bar-fill{height:100%;border-radius:6px;transition:width 0.3s;}
+
 /* ---------- Forms ---------- */
 .form-grid{display:grid;grid-template-columns: 1.1fr 1fr 1.4fr 0.9fr auto;gap:8px;align-items:end;}
 .field label{display:block;font-size:11px;color:var(--text-faint);margin-bottom:5px;}

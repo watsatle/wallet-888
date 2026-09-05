@@ -12,6 +12,7 @@ import { renderExpenseBoard, initExpenseBoard, getExpenseDateInput, getExpenseCa
 import { renderCollectSummary, renderSubtagSummary, updateDetailSummaryVisibility, renderGfaRatePanel, initGfaRate } from './summary.js';
 import { renderDashboardDonuts } from './mini-chart.js';
 import { renderWalletChart } from './wallet-chart.js';
+import { renderWalletSummary } from './wallet-summary.js';
 import { initReport } from './report.js';
 import { initWalletSelector, renderWalletSelector } from './wallets.js';
 import { initSettingsMenu } from './settings.js';
@@ -47,6 +48,7 @@ function render(){
   document.getElementById('sumNet').textContent = fmt(startBal + income - expense);
   renderDashboardDonuts(key);
   renderWalletChart(key);
+  renderWalletSummary(key);
 
   renderIncomeCalendar(openDayModal);
   renderSubtagSummary(key);

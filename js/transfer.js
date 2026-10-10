@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { saveState } from './firebase-service.js';
 import { populateCatSelect } from './categories.js';
-import { monthKey, newId, todayDateStr } from './utils.js';
+import { monthKey, newId, todayDateStr, fmt, escapeHtml, ICON_X } from './utils.js';
 import { populateMonthOptions, getMonthSelect } from './month-nav.js';
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
@@ -67,5 +67,39 @@ export function initTransfer(onChange){
     showToast(t('transfer.saved', { from: fromWallet, to: toWallet }));
     closeTransferModal();
     onChangeCallback();
+  });
+}
+
+/** Renders the month's transfers as a deletable list. Shown inside the
+ * wallet-summary panel so mistaken transfers can be removed. */
+export function renderTransferList(monthKeyValue){
+  const el = document.getElementById('transferList');
+  if (!el) return;
+
+  const list = state.entries
+    .filter(e => e.type === 'transfer' && monthKey(e.date) === monthKeyValue)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (list.length === 0){ el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="transfer-list-label">${t('transfer.title')}</div>` +
+    list.map(e => `
+      <div class="transfer-row">
+        <div class="tr-info">
+          <span class="tr-route">${escapeHtml(e.fromWallet)} <span class="tr-arrow">&rarr;</span> ${escapeHtml(e.toWallet)}</span>
+          <span class="tr-meta">${e.date}${e.desc ? ' · ' + escapeHtml(e.desc) : ''}</span>
+        </div>
+        <span class="tr-amt">${fmt(e.amount)}</span>
+        <button class="del-btn" data-id="${e.id}" aria-label="ลบรายการ">${ICON_X}</button>
+      </div>`).join('');
+
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      state.entries = state.entries.filter(x => x.id !== id);
+      await saveState();
+      populateMonthOptions();
+      onChangeCallback();
+    });
   });
 }

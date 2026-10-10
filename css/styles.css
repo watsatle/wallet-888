@@ -262,6 +262,15 @@ select:focus, input:focus{outline:none;border-color:var(--gold);}
 .ws-bar-track{height:10px;border-radius:6px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line-soft);}
 .ws-bar-fill{height:100%;border-radius:6px;transition:width 0.3s;}
 
+/* ---------- Transfer list (deletable) ---------- */
+.transfer-list-label{font-size:12px;color:var(--text-faint);margin:16px 0 8px;}
+.transfer-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:9px 12px;margin-bottom:6px;}
+.transfer-row .tr-info{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;}
+.transfer-row .tr-route{font-size:13px;color:var(--text);}
+.transfer-row .tr-arrow{color:var(--gold-soft);}
+.transfer-row .tr-meta{font-size:11.5px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.transfer-row .tr-amt{font-family:var(--font-display);font-size:14px;color:var(--gold-soft);white-space:nowrap;}
+
 /* ---------- Forms ---------- */
 .form-grid{display:grid;grid-template-columns: 1.1fr 1fr 1.4fr 0.9fr auto;gap:8px;align-items:end;}
 .field label{display:block;font-size:11px;color:var(--text-faint);margin-bottom:5px;}

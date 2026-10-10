@@ -35,9 +35,12 @@ export function renderWalletSelector(){
   addPill.addEventListener('click', addWallet);
   walletStrip.appendChild(addPill);
 
-  // Scroll the active pill into view (helps when there are many wallets).
+  // Center the active pill WITHIN the strip only (horizontal scroll of the
+  // strip itself) so the whole page never jumps to the top on re-render.
   const activeEl = walletStrip.querySelector('.wallet-pill.active');
-  if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  if (activeEl) {
+    walletStrip.scrollLeft = activeEl.offsetLeft - (walletStrip.clientWidth - activeEl.offsetWidth) / 2;
+  }
 }
 
 function selectWallet(w){

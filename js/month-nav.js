@@ -47,8 +47,12 @@ export function renderMonthStrip(){
     });
     monthStrip.appendChild(pill);
   });
+  // Center the active pill WITHIN the strip only (horizontal scroll of the
+  // strip itself) so the whole page never jumps to the top on re-render.
   const activeEl = monthStrip.querySelector('.month-pill.active');
-  if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  if (activeEl) {
+    monthStrip.scrollLeft = activeEl.offsetLeft - (monthStrip.clientWidth - activeEl.offsetWidth) / 2;
+  }
 }
 
 /** Moves the selected month forward/back by `delta` months, adding the

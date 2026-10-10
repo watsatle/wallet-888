@@ -16,7 +16,7 @@ import { renderWalletSummary } from './wallet-summary.js';
 import { initReport } from './report.js';
 import { initWalletSelector, renderWalletSelector } from './wallets.js';
 import { initSettingsMenu } from './settings.js';
-import { initTransfer } from './transfer.js';
+import { initTransfer, renderTransferList } from './transfer.js';
 import { showToast } from './toast.js';
 import { ALL_WALLETS } from './constants.js';
 import { t, initLanguage, applyStaticTranslations, setLanguage } from './i18n.js';
@@ -49,6 +49,7 @@ function render(){
   renderDashboardDonuts(key);
   renderWalletChart(key);
   renderWalletSummary(key);
+  renderTransferList(key);
 
   renderIncomeCalendar(openDayModal);
   renderSubtagSummary(key);

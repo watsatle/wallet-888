@@ -85,7 +85,8 @@ export function renderExpenseBoard(monthKeyValue){
 
 export function initExpenseBoard(onChange){
   onChangeCallback = onChange;
-  if (!eDate.value) eDate.value = todayDateStr();
+  // Always start on today's date (user can still pick another day manually).
+  eDate.value = todayDateStr();
   populateCatSelect(eWallet, state.wallets);
 
   document.getElementById('eAddBtn').addEventListener('click', async () => {
@@ -105,6 +106,7 @@ export function initExpenseBoard(onChange){
     updateDescMemory();
     eDesc.value = '';
     eAmount.value = '';
+    eDate.value = todayDateStr();
     populateMonthOptions();
     getMonthSelect().value = monthKey(date);
     showToast(t('expense.toastSaved'));
